@@ -5,6 +5,7 @@
 /public/css
 /public/mix-manifest.json
 /storage/*.key
+/resources/wechat_pay
 /vendor
 .env
 .phpunit.result.cache
