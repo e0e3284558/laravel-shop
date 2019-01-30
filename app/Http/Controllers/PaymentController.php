@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Endroid\QrCode\QrCode;
 use Illuminate\Http\Request;
 use Yansongda\Pay\Log;
+use App\Events\OrderPaid;
 
 class PaymentController extends Controller
 {
@@ -64,6 +65,7 @@ class PaymentController extends Controller
         // 如果这笔订单的状态已经是已支付
         if ($order->paid_at) {
             // 返回数据给支付宝
+            $this->afterPaid($order);
             return app('alipay')->success();
         }
 
@@ -106,10 +108,10 @@ class PaymentController extends Controller
             'body' => '支付Laravel Shop 的订单：' . $order->no,
         ]);
         // 把要转换的字符串作为QrCode的构造函数参数
-        $qrCode=new QrCode($wechatOrder->code_url);
+        $qrCode = new QrCode($wechatOrder->code_url);
 
         // 将生成的二维码图片数据以字符串的形式输出，并带上相应的响应类型
-        return response($qrCode->writeString(),200,['Content-Type'=>$qrCode->getContentType()]);
+        return response($qrCode->writeString(), 200, ['Content-Type' => $qrCode->getContentType()]);
     }
 
     public function wechatNotify()
@@ -135,6 +137,12 @@ class PaymentController extends Controller
             'payment_no' => $data->transaction_id,
         ]);
 
+        $this->afterPaid($order);
         return app('wechat_pay')->success();
+    }
+
+    protected function afterPaid(Order $order)
+    {
+        event(new OrderPaid($order));
     }
 }
