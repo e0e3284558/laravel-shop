@@ -195,10 +195,28 @@ class OrdersController extends Controller
             'ship_status' => Order::SHIP_STATUS_DELIVERED,
             // 在 Order 模型的 $casts 属性里指明了 ship_data 是一个数组
             // 因为这里可以直接把数组传过去
-            'ship_data'=>$data,
+            'ship_data' => $data,
         ]);
 
         // 返回上一页
         return redirect()->back();
+    }
+
+    public function received(Order $order, Request $request)
+    {
+        // 效验权限
+        $this->authorize('own', $order);
+
+        // 判断订单的发货状态是否为已发货
+        if ($order->ship_status !== Order::SHIP_STATUS_DELIVERED) {
+            throw new InvalidRequestException('发货状态不正确');
+        }
+
+        // 更新发货状态为已收到
+        $order->update(['ship_status' => Order::SHIP_STATUS_RECEIVED]);
+
+        // 返回原页面
+        return $order;
+
     }
 }
