@@ -23,7 +23,7 @@ class Order extends Model
         self::REFUND_STATUS_PENDING => '未付款',
         self::REFUND_STATUS_APPLIED => '已申请退款',
         self::REFUND_STATUS_PROCESSING => '退款中',
-        self::REFUND_STATUS_SUCCESS => '退款失败',
+        self::REFUND_STATUS_SUCCESS => '退款成功',
         self::REFUND_STATUS_FAILED => '退款失败',
     ];
 
