@@ -58,8 +58,8 @@
                     <!--购物车页面加入地址选择框和备注框-->
                     <div>
                         <form role="form" id="order-form" class="form-horizontal">
-                            <div class="form-group">
-                                <label class="control-label col-sm-3">选择收货地址</label>
+                            <div class="form-group row">
+                                <label class="col-form-label col-sm-3 text-md-right">选择收货地址</label>
                                 <div class="col-sm-9 col-md-7">
                                     <select name="address" class="form-control">
                                         @foreach($addresses as $address)
@@ -70,12 +70,28 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label class="control-label col-sm-3">备注</label>
+                            <div class="form-group row">
+                                <label class="col-form-label col-sm-3 text-md-right">备注</label>
                                 <div class="col-sm-9 col-md-7">
                                     <textarea name="remark" class="form-control" rows="3"></textarea>
                                 </div>
                             </div>
+                            <!-- 优惠码开始 -->
+                            <div class="form-group row">
+                                <label for="" class="col-form-label col-sm-3 text-md-right">优惠码</label>
+                                <div class="col-sm-4">
+                                    <input type="text" class="form-control" name="coupon_code">
+                                    <span class="form-text text-muted" id="coupon_desc"></span>
+                                </div>
+                                <div class="col-sm-3">
+                                    <button class="btn btn-success" type="button" id="btn-check-coupon">检查</button>
+                                    <button class="btn btn-danger" style="display: none" type="button"
+                                            id="btn-cancel-coupon">取消
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- 优惠券结束 -->
+
                             <div class="form-group">
                                 <div class="col-sm-offset-3 col-sm-3">
                                     <button type="button" class="btn btn-primary btn-create-order">提交订单</button>
@@ -183,6 +199,53 @@
                         }
                     });
             });
+
+            // 检查按钮点击事件
+            $('#btn-check-coupon').click(function () {
+                // 获取用户输入的优惠码
+                var code = $('input[name=coupon_code]').val();
+                // 如果没有输入弹框提示
+                if (!code) {
+                    swal('请输入优惠码', '', 'warning');
+                    return;
+                }
+                // 调用检查接口
+                axios.get('/coupon_codes/' + encodeURIComponent(code)).then(function (response) {
+                    // then 方法第一个参数是回调，请求成功时会被调用
+                    // 输入优惠信息
+                    $('#coupon_desc').text(response.data.description);
+                    // 禁用输入框
+                    $('input[name=coupon_code]').prop('readonly', true);
+                    // 显示  取消  按钮
+                    $('#btn-cancel-coupon').show();
+                    // 隐藏  检查 按钮
+                    $('btn-check-coupon').hide();
+                }, function (error) {
+                    // 如果返回码是 404 ，说明优惠券不存在
+                    if (error.response.status === 404) {
+                        swal('优惠码不存在', '', 'error');
+                    } else if (error.response.status === 403) {
+                        //如果返回码是403 ，说明其他条件不满足
+                        swal(error.response.data.msg, '', 'error');
+                    } else {
+                        // 其他错误
+                        swal('系统内部错误', '', 'error');
+                    }
+                })
+            })
         });
+
+        // 隐藏 按钮点击事件
+        $('#btn-cancel-coupon').click(function () {
+            // 隐藏优惠信息
+            $('#coupon_desc').text('');
+            // 启用输入框
+            $('input[name=coupon_code]').prop('readonly', false);
+            // 隐藏 取消 按钮
+            $('#btn-cancel-coupon').hide();
+            // 显示 检查 按钮
+            $('#btn-check-coupon').show();
+        })
+
     </script>
 @endsection
